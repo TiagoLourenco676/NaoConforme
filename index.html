@@ -411,8 +411,8 @@
         }
 
         .badge-interno {
-            background: #dbeafe;
-            color: #1e40af;
+            background: #e0e7ff;
+            color: #3730a3;
         }
 
         .empty-state {
@@ -893,7 +893,8 @@
                 <div class="register-section">
                     <div class="register-header">
                         <h2>Nova Não Conformidade</h2>
-                        <p>Preencha as informações abaixo para registrar uma nova não conformidade</p>
+                        <p>Preencha as informações abaixo para registrar uma nova não conformidade.<br>
+                        <small style="color: #64748b;">O campo "Fornecedor" é sempre opcional, mas recomendado para rastreabilidade completa.</small></p>
                     </div>
 
                     <form id="productForm" class="form-layout">
@@ -915,22 +916,11 @@
 
                             <div class="form-field">
                                 <label for="origin">Procedência *</label>
-                                <select id="origin" name="origin" required onchange="toggleSupplierField()">
+                                <select id="origin" name="origin" required>
                                     <option value="">Selecione a procedência</option>
-                                    <option value="fornecedor">Fornecedor</option>
-                                    <option value="interno">Interno</option>
+                                    <option value="fornecedor">Problema do Fornecedor</option>
+                                    <option value="interno">Problema Interno</option>
                                 </select>
-                            </div>
-                        </div>
-
-                        <div class="form-row" id="supplierRow" style="display: none;">
-                            <div class="form-field">
-                                <label for="supplierName">Nome do Fornecedor *</label>
-                                <div style="position: relative;">
-                                    <input type="text" id="supplierName" name="supplierName" 
-                                           placeholder="Ex: ABC Componentes Ltda." autocomplete="off">
-                                    <div id="supplierSuggestions" class="suggestions"></div>
-                                </div>
                             </div>
                         </div>
 
@@ -941,6 +931,15 @@
                                     <input type="text" id="productDescription" name="productDescription" required 
                                            placeholder="Ex: Parafuso M8 x 20mm" autocomplete="off">
                                     <div id="descriptionSuggestions" class="suggestions"></div>
+                                </div>
+                            </div>
+
+                            <div class="form-field">
+                                <label for="supplierName">Nome do Fornecedor</label>
+                                <div style="position: relative;">
+                                    <input type="text" id="supplierName" name="supplierName" 
+                                           placeholder="Ex: ABC Componentes Ltda." autocomplete="off">
+                                    <div id="supplierSuggestions" class="suggestions"></div>
                                 </div>
                             </div>
                         </div>
@@ -1180,22 +1179,6 @@
         supplierNameInput.addEventListener('input', handleSupplierInput);
         supplierNameInput.addEventListener('focus', showSupplierSuggestions);
         supplierNameInput.addEventListener('blur', hideSupplierSuggestions);
-
-        // Função para mostrar/ocultar campo de fornecedor
-        function toggleSupplierField() {
-            const origin = document.getElementById('origin').value;
-            const supplierRow = document.getElementById('supplierRow');
-            const supplierNameInput = document.getElementById('supplierName');
-            
-            if (origin === 'fornecedor') {
-                supplierRow.style.display = 'block';
-                supplierNameInput.required = true;
-            } else {
-                supplierRow.style.display = 'none';
-                supplierNameInput.required = false;
-                supplierNameInput.value = '';
-            }
-        }
 
         // Melhora a experiência de upload em mobile
         function handleImageChange(e) {
@@ -1506,19 +1489,13 @@
             const origin = formData.get('origin');
             const supplierName = formData.get('supplierName');
             
-            // Validação específica para fornecedor
-            if (origin === 'fornecedor' && !supplierName) {
-                alert('O nome do fornecedor é obrigatório quando a procedência for "Fornecedor"');
-                return;
-            }
-            
             const record = {
                 id: generateId(),
                 productCode: productCode,
                 productDescription: productDescription,
                 quantity: parseInt(formData.get('quantity')),
                 origin: origin,
-                supplierName: origin === 'fornecedor' ? supplierName : null,
+                supplierName: supplierName || null,
                 defectCause: defectCause,
                 images: [...currentImages],
                 date: new Date().toLocaleString('pt-BR')
@@ -1528,7 +1505,7 @@
             saveProductCode(productCode);
             saveDescription(productDescription);
             saveDefect(defectCause);
-            if (origin === 'fornecedor' && supplierName) {
+            if (supplierName) {
                 saveSupplier(supplierName);
             }
 
@@ -1537,7 +1514,6 @@
             form.reset();
             currentImages = [];
             imagePreview.innerHTML = '';
-            toggleSupplierField();
 
             // Feedback visual
             const submitBtn = form.querySelector('.submit-button');
@@ -1591,10 +1567,14 @@
                         <div>
                             <strong>Procedência:</strong> 
                             <span class="badge badge-${record.origin}">
-                                ${record.origin.charAt(0).toUpperCase() + record.origin.slice(1)}
+                                ${record.origin === 'fornecedor' ? 'Problema do Fornecedor' : 'Problema Interno'}
                             </span>
-                            ${record.supplierName ? `<br><small style="color: #64748b; margin-top: 0.25rem; display: block;"><strong>Fornecedor:</strong> ${record.supplierName}</small>` : ''}
                         </div>
+                        ${record.supplierName ? `
+                        <div>
+                            <strong>Fornecedor:</strong> ${record.supplierName}
+                        </div>
+                        ` : ''}
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
@@ -1661,10 +1641,14 @@
                         <div>
                             <strong>Procedência:</strong> 
                             <span class="badge badge-${record.origin}">
-                                ${record.origin.charAt(0).toUpperCase() + record.origin.slice(1)}
+                                ${record.origin === 'fornecedor' ? 'Problema do Fornecedor' : 'Problema Interno'}
                             </span>
-                            ${record.supplierName ? `<br><small style="color: #64748b; margin-top: 0.25rem; display: block;"><strong>Fornecedor:</strong> ${record.supplierName}</small>` : ''}
                         </div>
+                        ${record.supplierName ? `
+                        <div>
+                            <strong>Fornecedor:</strong> ${record.supplierName}
+                        </div>
+                        ` : ''}
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
@@ -2134,9 +2118,9 @@
             border: 1px solid #f59e0b;
         }
         .badge-interno {
-            background: #dbeafe;
-            color: #1e40af;
-            border: 1px solid #3b82f6;
+            background: #e0e7ff;
+            color: #3730a3;
+            border: 1px solid #6366f1;
         }
         .defect-description {
             background: white;
@@ -2327,11 +2311,17 @@
                             <div class="card-label">Procedência</div>
                             <div class="card-value">
                                 <span class="badge badge-${record.origin}">
-                                    ${record.origin.charAt(0).toUpperCase() + record.origin.slice(1)}
+                                    ${record.origin === 'fornecedor' ? 'Problema do Fornecedor' : 'Problema Interno'}
                                 </span>
-                                ${record.supplierName ? `<br><div style="margin-top: 8px; color: #374151;"><strong>Fornecedor:</strong> ${record.supplierName}</div>` : ''}
                             </div>
                         </div>
+                        
+                        ${record.supplierName ? `
+                        <div class="info-card">
+                            <div class="card-label">Fornecedor</div>
+                            <div class="card-value">${record.supplierName}</div>
+                        </div>
+                        ` : ''}
                     </div>
                     
                     <div class="defect-description">
